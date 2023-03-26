@@ -1,54 +1,75 @@
-const Discord = require("discord.js")
+const Discord = require("discord.js");
+require("dotenv").config();
 
 module.exports = {
-    name: "kick",
-    description: "｢Admin｣ Expulsar um membro.",
-    type: Discord.ApplicationCommandType.ChatInput,
-    options: [
-        {
-            name: "membro",
-            description: "Mencione um membro.",
-            type: Discord.ApplicationCommandOptionType.User,
-            required: true,
-        },
-        {
-            name: "motivo",
-            description: "Descreva o motivo da expulsão.",
-            type: Discord.ApplicationCommandOptionType.String,
-            required: false,
-        }
-    ],
+  name: "kick",
+  description: "｢Admin｣ Kick members.",
+  type: Discord.ApplicationCommandType.ChatInput,
+  options: [
+    {
+      name: "member",
+      description: "Mention members",
+      type: Discord.ApplicationCommandOptionType.User,
+      required: true,
+    },
+    {
+      name: "reason",
+      description: "Explain the reason for the expulsion.",
+      type: Discord.ApplicationCommandOptionType.String,
+      required: false,
+    },
+  ],
 
-    run: async (client, interaction) => {
+  run: async (client, interaction) => {
+    if (
+      !interaction.member.permissions.has(
+        Discord.PermissionFlagsBits.KickMembers
+      ) &&
+      !interaction.member.roles.cache.some(
+        (role) => role.id === process.env.DEVELOPER_ROLE_ID
+      ) &&
+      !interaction.member.roles.cache.some(
+        (role) => role.id === process.env.MODERATOR_ROLE_ID
+      )
+    ) {
+      interaction.reply({
+        content: `You do not have permission to use this command.`,
+        epemeral: true,
+      });
+    } else {
+      const user = interaction.options.getUser("member");
+      const member = interaction.guild.members.cache.get(user.id);
 
-        if (!interaction.member.permissions.has(Discord.PermissionFlagsBits.KickMembers)) {
-            interaction.reply({ content: `Você não possui permissão para utilizar este comando.`, epemeral: true })
-        } else {
-            const user = interaction.options.getUser("membro")
-            const membro = interaction.guild.members.cache.get(user.id)
+      if (!member) {
+        return interaction.reply({
+          content: `Member not found.`,
+          ephemeral: true,
+        });
+      }
 
-            if (!membro) {
-                return interaction.reply({ content: `Membro não encontrado.`, ephemeral: true })
-            }
+      let reason = interaction.options.getString("reason");
+      if (!reason) reason = "Uninformed";
 
-            let motivo = interaction.options.getString("motivo")
-            if (!motivo) motivo = "Não informado"
+      let embed = new Discord.EmbedBuilder()
+        .setColor("Green")
+        .setDescription(
+          `User ${member}has been successfully kicked!\n\n> reason: \`${reason}\`\n\n> By ${interaction.user.tag}.`
+        );
 
-            let embed = new Discord.EmbedBuilder()
-                .setColor("Green")
-                .setDescription(`O usuário ${membro} foi expulso com sucesso!\n\n> Motivo: \`${motivo}\`\n\n> Por ${interaction.user.tag}.`)
+      let embed_erro = new Discord.EmbedBuilder()
+        .setColor("Red")
+        .setDescription(
+          `User ${member} has not been kicked from the server!\There was an error executing this command, please try again.`
+        );
 
-            let embed_erro = new Discord.EmbedBuilder()
-                .setColor("Red")
-                .setDescription(`O usuário ${membro} não foi expulso do servidor!\nHouve um erro na hora de executar este comando, por favor tente novamente.`);
-
-            membro.kick(motivo).then(() => {
-                interaction.reply({ embeds: [embed] })
-            }).catch(e => {
-                interaction.reply({ embeds: [embed_erro], epemeral: true })
-            })
-        }
-
-
+      member
+        .kick(reason)
+        .then(() => {
+          interaction.reply({ embeds: [embed] });
+        })
+        .catch((e) => {
+          interaction.reply({ embeds: [embed_erro], epemeral: true });
+        });
     }
-}
+  },
+};

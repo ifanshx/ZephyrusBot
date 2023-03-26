@@ -1,70 +1,71 @@
 const Discord = require("discord.js");
+require("dotenv").config();
 
 module.exports = {
   name: "mute",
-  description: "｢Admin｣ Silenciar um usuário.",
+  description: "｢Admin｣ Mute a user.",
   type: Discord.ApplicationCommandType.ChatInput,
-  
+
   options: [
     {
-      name: "usuário",
-      description: "Usuário para ser silenciado.",
+      name: "user",
+      description: "User to be muted.",
       type: Discord.ApplicationCommandOptionType.User,
       required: true,
     },
     {
-      name: "tempo",
-      description: "Tempo em segundos para o usuário ficar silenciado.",
+      name: "time",
+      description: "Time in seconds for the user to be muted.",
       type: Discord.ApplicationCommandOptionType.Integer,
       required: true,
     },
   ],
 
   run: async (client, interaction) => {
-    const member = interaction.options.getMember("usuário");
-    const seconds = interaction.options.getInteger("tempo");
-    const reason = `Silenciado por ${interaction.user.tag}`;
+    const member = interaction.options.getMember("user");
+    const seconds = interaction.options.getInteger("time");
+    const reason = `Muted by ${interaction.user.tag}`;
 
     if (!member) {
       return interaction.reply({
-        content: "Usuário não encontrado.",
+        content: "User not found.",
         ephemeral: true,
       });
     }
 
     if (!member.manageable) {
       return interaction.reply({
-        content: "Não tenho permissão para silenciar este usuário.",
+        content: "I don't have permission to mute this user.",
         ephemeral: true,
       });
     }
 
     const mutedRole = interaction.guild.roles.cache.find(
-      (role) => role.name.toLowerCase() === "Mutado"
+      (role) => role.name.toLowerCase() === "mutated"
     );
 
     if (!mutedRole) {
       return interaction.reply({
         content:
-          "Não encontrei o cargo `Mutado`. Por favor, crie um cargo com esse nome e tente novamente.",
+          "I didn't find the position `Muted`. Please create a role with that name and try again.",
         ephemeral: true,
       });
     }
 
     if (member.roles.cache.has(mutedRole.id)) {
       return interaction.reply({
-        content: "Usuário já está silenciado.",
+        content: "User is already muted.",
         ephemeral: true,
       });
     }
 
     await member.roles.add(mutedRole, reason);
     interaction.reply({
-      content: `${member} foi silenciado por ${seconds} segundos.`,
+      content: `${member} has been muted for ${seconds} seconds.`,
     });
 
     setTimeout(() => {
-      member.roles.remove(mutedRole, "Tempo de silenciamento expirado.");
+      member.roles.remove(mutedRole, "Silence time expired.");
     }, seconds * 1000);
   },
 };

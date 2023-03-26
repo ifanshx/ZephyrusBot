@@ -1,47 +1,63 @@
-const Discord = require("discord.js")
+const Discord = require("discord.js");
+require("dotenv").config();
 
 module.exports = {
-    name: "unban",
-    description: "｢Admin｣ Desbanir um usuário.",
-    type: Discord.ApplicationCommandType.ChatInput,
-    options: [
-        {
-            name: "user",
-            description: "Mencione um usuário para ser desbanido.",
-            type: Discord.ApplicationCommandOptionType.User,
-            required: true,
-        },
-        {
-            name: "motivo",
-            description: "Insira um motivo.",
-            type: Discord.ApplicationCommandOptionType.String,
-            required: false,
-        }
-    ],
+  name: "unban",
+  description: "｢Admin｣ Unban a user.",
+  type: Discord.ApplicationCommandType.ChatInput,
+  options: [
+    {
+      name: "user",
+      description: "Mention a user to be unbanned.",
+      type: Discord.ApplicationCommandOptionType.User,
+      required: true,
+    },
+    {
+      name: "reason",
+      description: "Enter a reason.",
+      type: Discord.ApplicationCommandOptionType.String,
+      required: false,
+    },
+  ],
 
-    run: async (client, interaction) => {
+  run: async (client, interaction) => {
+    if (
+      !interaction.member.permissions.has(
+        Discord.PermissionFlagsBits.BanMembers
+      ) &&
+      !interaction.member.roles.cache.some(
+        (role) => role.id === process.env.DEVELOPER_ROLE_ID
+      ) &&
+      !interaction.member.roles.cache.some(
+        (role) => role.id === process.env.MODERATOR_ROLE_ID
+      )
+    ) {
+      interaction.reply(`You do not have permission to use this command.`);
+    } else {
+      let user = interaction.options.getUser("user");
+      let motivo = interaction.options.getString("reason");
+      if (!motivo) motivo = "Undefined.";
 
-        if (!interaction.member.permissions.has(Discord.PermissionFlagsBits.BanMembers)) {
-            interaction.reply(`Você não possui permissão para utilizar este comando.`);
-        } else {
-            let user = interaction.options.getUser("user");
-            let motivo = interaction.options.getString("motivo");
-            if (!motivo) motivo = "Não definido.";
+      let embed = new Discord.EmbedBuilder()
+        .setColor("Green")
+        .setDescription(
+          `User ${user} (\`${user.id}\`) has been successfully unbanned!`
+        );
 
-            let embed = new Discord.EmbedBuilder()
-                .setColor("Green")
-                .setDescription(`O usuário ${user} (\`${user.id}\`) foi desbanido com sucesso!`);
+      let erro = new Discord.EmbedBuilder()
+        .setColor("Red")
+        .setDescription(
+          `Could not unban user ${user} (\`${user.id}\`) from server!`
+        );
 
-            let erro = new Discord.EmbedBuilder()
-                .setColor("Red")
-                .setDescription(`Não foi possível desbanir o usuário ${user} (\`${user.id}\`) do servidor!`);
-
-            interaction.guild.members.unban(user.id, motivo).then(() => {
-                interaction.reply({ embeds: [embed] })
-            }).catch(e => {
-                interaction.reply({ embeds: [erro] })
-            })
-        }
-
+      interaction.guild.members
+        .unban(user.id, motivo)
+        .then(() => {
+          interaction.reply({ embeds: [embed] });
+        })
+        .catch((e) => {
+          interaction.reply({ embeds: [erro] });
+        });
     }
-}
+  },
+};

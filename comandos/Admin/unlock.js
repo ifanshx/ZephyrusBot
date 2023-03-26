@@ -1,32 +1,52 @@
-const Discord = require("discord.js")
+const Discord = require("discord.js");
+require("dotenv").config();
 
 module.exports = {
-    name: "unlock",
-    description: "｢Admin｣ Desbloquear um canal.",
-    type: Discord.ApplicationCommandType.ChatInput,
-    options: [
-        {
-            name: "canal",
-            description: "Mencione um canal para o desbloquear o chat.",
-            type: Discord.ApplicationCommandOptionType.Channel,
-            required: true,
-        }
-    ],
+  name: "unlock",
+  description: "｢Admin｣ Unlock channels.",
+  type: Discord.ApplicationCommandType.ChatInput,
+  options: [
+    {
+      name: "channel",
+      description: "Mention the channel to unblock chat.",
+      type: Discord.ApplicationCommandOptionType.Channel,
+      required: true,
+    },
+  ],
 
-    run: async (client, interaction) => {
+  run: async (client, interaction) => {
+    if (
+      !interaction.member.permissions.has(
+        Discord.PermissionFlagsBits.ManageChannels
+      ) &&
+      !interaction.member.roles.cache.some(
+        (role) => role.id === process.env.DEVELOPER_ROLE_ID
+      ) &&
+      !interaction.member.roles.cache.some(
+        (role) => role.id === process.env.MODERATOR_ROLE_ID
+      )
+    ) {
+      interaction.reply({
+        content: `You do not have permission to use this command.`,
+        ephemeral: true,
+      });
+    } else {
+      const channel = interaction.options.getChannel("channel");
 
-        if (!interaction.member.permissions.has(Discord.PermissionFlagsBits.ManageChannels)) {
-            interaction.reply({ content: `Você não possui permissão para utilizar este comando.`, ephemeral: true })
-        } else {
-            const canal = interaction.options.getChannel("canal")
-
-            canal.permissionOverwrites.edit(interaction.guild.id, { SendMessages: true }).then(() => {
-                interaction.reply({ content: `🔓 O canal de texto ${canal} foi desbloqueado!` })
-                if (canal.id !== interaction.channel.id) return canal.send({ content: `🔓 Este canal foi desbloqueado!` })
-            }).catch(e => {
-                interaction.reply({ content: `❌ Ops, algo deu errado.` })
-            })
-        }
-
+      channel.permissionOverwrites
+        .edit(interaction.guild.id, { SendMessages: true })
+        .then(() => {
+          interaction.reply({
+            content: `🔓 The ${channel} text channel has been opened!`,
+          });
+          if (channel.id !== interaction.channel.id)
+            return channel.send({
+              content: `🔓This channel has been unlocked!`,
+            });
+        })
+        .catch((e) => {
+          interaction.reply({ content: `❌ Oops, an error occurred.` });
+        });
     }
-}
+  },
+};

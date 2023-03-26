@@ -1,12 +1,12 @@
 {
-  "name": "starnick",
+  "name": "zephyrusbot",
   "version": "1.0.0",
-  "description": "Um bot simples para Discord :)",
+  "description": "ZephyrusBot Discord :)",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "GeovaneDev",
+  "author": "Ifanshx",
   "license": "MIT",
   "dependencies": {
     "@vitalets/google-translate-api": "^9.1.0",
@@ -19,13 +19,5 @@
     "mathjs": "^11.6.0",
     "ms": "^2.1.3",
     "node-fetch": "^2.6.9"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/GeovaneDev/Starnick.git"
-  },
-  "bugs": {
-    "url": "https://github.com/GeovaneDev/Starnick/issues"
-  },
-  "homepage": "https://github.com/GeovaneDev/Starnick"
+  }
 }

@@ -1,61 +1,67 @@
-const Discord  = require("discord.js");
-const DONO = "691279644468445274";
+const Discord = require("discord.js");
+require("dotenv").config();
 
 module.exports = {
-    name: "setstatus",
-    description: "｢Developer｣ Configure meu status. - Somente o criador pode usar 😉.",
-    options: [
-        {
-            type: Discord.ApplicationCommandOptionType.String,
-            name: "status",
-            description: "Qual estilo você deseja aplicar (online, dnd, idle, invisible)?",
-            required: true,
-        },
-        {
-            type: Discord.ApplicationCommandOptionType.String,
-            name: "descrição",
-            description: "Qual será a descrição do status?",
-            required: true,
-        }
-    ],
+  name: "setstatus",
+  description: "｢Developer｣ Configure my status. - Only creator can use😉.",
+  options: [
+    {
+      type: Discord.ApplicationCommandOptionType.String,
+      name: "status",
+      description:
+        "Which style do you want to apply (online, dnd, idle, invisible)?",
+      required: true,
+    },
+    {
+      type: Discord.ApplicationCommandOptionType.String,
+      name: "description",
+      description: "What will the status description be?",
+      required: true,
+    },
+  ],
 
-    run: async (client, interaction) => {
+  run: async (client, interaction) => {
+    if (interaction.user.id !== process.env.DEVELOPER_ROLE_ID)
+      return interaction.reply({
+        content: `Only my owner can use this command!`,
+        ephemeral: true,
+      });
 
-        if (interaction.user.id !== DONO) return interaction.reply({ content: `Apenas o meu dono pode utilizar este comando!`, ephemeral: true })
+    try {
+      let status = interaction.options.getString("status");
+      let desc = interaction.options.getString("description");
 
-        try {
+      client.user.setStatus(`${status}`);
 
-            let status = interaction.options.getString("status");
-            let desc = interaction.options.getString("descrição");
+      client.user.setPresence({
+        activities: [
+          {
+            name: desc,
+          },
+        ],
+      });
 
-            client.user.setStatus(`${status}`);
+      let embed = new Discord.EmbedBuilder()
+        .setColor("Green")
+        .setTitle("Status Updated!")
+        .addFields(
+          {
+            name: `🔮 I changed my status to: `,
+            value: `\`${status}\`.`,
+            inline: false,
+          },
+          {
+            name: `📝 I changed my description to:`,
+            value: `\`${desc}\`.`,
+            inline: false,
+          }
+        );
 
-            client.user.setPresence({
-                activities: [{
-                    name: desc
-                }],
-            });
-
-            let embed = new Discord.EmbedBuilder()
-                .setColor("Green")
-                .setTitle("Status atualizado!")
-                .addFields(
-                    {
-                        name: `🔮 Mudei meu status para:`,
-                        value: `\`${status}\`.`,
-                        inline: false
-                    },
-                    {
-                        name: `📝 Mudei minha descrição para:`,
-                        value: `\`${desc}\`.`,
-                        inline: false
-                    }
-                )
-
-            await interaction.reply({ embeds: [embed] });
-
-        } catch (error) {
-            return console.log(`Ops ${interaction.user}, algo deu errado ao executar este comando.`)
-        }
+      await interaction.reply({ embeds: [embed] });
+    } catch (error) {
+      return console.log(
+        `Opps ${interaction.user}, something went wrong when running this command.`
+      );
     }
-}
+  },
+};

@@ -1,37 +1,36 @@
 const Discord = require("discord.js");
+require("dotenv").config();
 
 module.exports = {
   name: "unmute",
-  description: "｢Admin｣ Remover silenciamento.",
+  description: "｢Admin｣ Unmute.",
   type: Discord.ApplicationCommandType.ChatInput,
 
   options: [
     {
-      name: "usuário",
-      description: "O usuário que você deseja remover o silenciamento.",
+      name: "user",
+      description: "The user you want to activate.",
       type: Discord.ApplicationCommandOptionType.User,
       required: true,
     },
   ],
 
   run: async (client, interaction) => {
-    const user = interaction.options.getUser("usuário");
+    const user = interaction.options.getUser("user");
     const member = interaction.guild.members.cache.get(user.id);
     const mutedRole = interaction.guild.roles.cache.find(
-        (role) => role.name.toLowerCase() === "mute"
+      (role) => role.name.toLowerCase() === "mute"
     );
 
     if (!mutedRole) {
-      return interaction.reply(
-        "Não foi possível encontrar o cargo 'Mute'."
-      );
+      return interaction.reply("Unable to find a job 'Mute'.");
     }
 
     if (member.roles.cache.has(mutedRole.id)) {
       member.roles.remove(mutedRole.id);
-      interaction.reply(`O usuário ${user} foi desmutado.`);
+      interaction.reply(`User ${user} has been unvoiced.`);
     } else {
-      interaction.reply(`O usuário ${user} não está silenciado.`);
+      interaction.reply(`The user ${user} is not muted.`);
     }
   },
 };
